@@ -49,8 +49,20 @@ func (s *PessoaService) ListarResponsaveis(ctx context.Context) ([]domain.Pessoa
 	return s.repositorio.ListarResponsaveis(ctx)
 }
 
-/*
-func (s *PessoaService) Atualizar() {
-	s.repositorio.Atualizar()
+func (s *PessoaService) Atualizar(ctx context.Context,
+	registroPublico string, nome string) (domain.Pessoa, error) {
+
+	nome = strings.TrimSpace(nome)
+	if nome == "" {
+		return domain.Pessoa{}, errors.New("nome é obrigatório")
+	}
+
+	pessoa, err := s.BuscarPorCodigoPublico(ctx, registroPublico)
+	if err != nil {
+		return domain.Pessoa{}, err
+	}
+
+	pessoa.Nome = nome
+
+	return s.repositorio.Atualizar(ctx, pessoa)
 }
-*/
