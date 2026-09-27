@@ -97,3 +97,11 @@ func (s *ChamadoService) Cadastrar(ctx context.Context,
 	}
 	return s.repositorioChamado.Criar(ctx, chamado)
 }
+
+func (s *ChamadoService) BuscarPorID(ctx context.Context,
+	id int64) (domain.Chamado, error) {
+	if id <= 0 {
+		return domain.Chamado{}, errors.New("id do chamado inválido")
+	}
+	return s.repositorioChamado.BuscarPorID(ctx, id)
+}
