@@ -1,6 +1,7 @@
 package service
 
 import (
+	"github.com/1GabrielReis/sistema-chamados/internal/domain"
 	"github.com/1GabrielReis/sistema-chamados/internal/repository"
 )
 
@@ -15,4 +16,13 @@ func NovoChamadoService(repositorioChamado repository.ChamadoRepository,
 		repositorioChamado: repositorioChamado,
 		repositorioPessoa:  repositorioPessoa,
 	}
+}
+
+type CadastrarProdutoEntrada struct {
+	CodigoSolicitante      string
+	CodigoResponsavel      string
+	DistribuicaoAutomatica bool
+	Titulo                 string
+	Descricao              string
+	Prioridade             domain.Prioridade
 }
