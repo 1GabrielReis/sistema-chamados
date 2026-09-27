@@ -45,11 +45,11 @@ func (s *PessoaService) BuscarPorCodigoPublico(ctx context.Context,
 	return s.repositorio.BuscarPorCodigoPublico(ctx, registroPublico)
 }
 
-/*
-func (s *PessoaService) ListarResponsaveis() {
-	s.repositorio.ListarResponsaveis()
+func (s *PessoaService) ListarResponsaveis(ctx context.Context) ([]domain.Pessoa, error) {
+	return s.repositorio.ListarResponsaveis(ctx)
 }
 
+/*
 func (s *PessoaService) Atualizar() {
 	s.repositorio.Atualizar()
 }
