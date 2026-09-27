@@ -36,11 +36,16 @@ func (s *PessoaService) Cadastrar(ctx context.Context,
 	return s.repositorio.Criar(ctx, pessoa)
 }
 
-/*
-func (s *PessoaService) BuscarPorCodigoPublico() {
-	s.repositorio.BuscarPorCodigoPublico()
+func (s *PessoaService) BuscarPorCodigoPublico(ctx context.Context,
+	registroPublico string) (domain.Pessoa, error) {
+	registroPublico = strings.TrimSpace(registroPublico)
+	if registroPublico == "" {
+		return domain.Pessoa{}, errors.New("registro público é obrigatório")
+	}
+	return s.repositorio.BuscarPorCodigoPublico(ctx, registroPublico)
 }
 
+/*
 func (s *PessoaService) ListarResponsaveis() {
 	s.repositorio.ListarResponsaveis()
 }
