@@ -6,14 +6,14 @@ type Prioridade string
 type Status string
 
 type Chamado struct {
-	ID            int64
-	SolicitanteID int64
-	ResponsavelID int64
-	Titulo        string
-	Descricao     string
-	Prioridade    Prioridade
-	Status        Status
-	DataAbertura  time.Time
+	ID           int64
+	Solicitante  Pessoa
+	Responsavel  Pessoa
+	Titulo       string
+	Descricao    string
+	Prioridade   Prioridade
+	Status       Status
+	DataAbertura time.Time
 }
 
 const (
