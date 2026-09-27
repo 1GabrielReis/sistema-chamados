@@ -105,3 +105,7 @@ func (s *ChamadoService) BuscarPorID(ctx context.Context,
 	}
 	return s.repositorioChamado.BuscarPorID(ctx, id)
 }
+
+func (s *ChamadoService) Listar(ctx context.Context) ([]domain.Chamado, error) {
+	return s.repositorioChamado.Listar(ctx)
+}
