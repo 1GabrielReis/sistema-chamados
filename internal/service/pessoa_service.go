@@ -66,3 +66,38 @@ func (s *PessoaService) Atualizar(ctx context.Context,
 
 	return s.repositorio.Atualizar(ctx, pessoa)
 }
+
+func (s *PessoaService) HabilitarComoResponsavel(ctx context.Context, codigoAutorizador string,
+	codigoPessoa string) (domain.Pessoa, error) {
+
+	codigoAutorizador = strings.TrimSpace(codigoAutorizador)
+	if codigoAutorizador == "" {
+		return domain.Pessoa{}, errors.New("código do autorizador é obrigatório")
+	}
+
+	codigoPessoa = strings.TrimSpace(codigoPessoa)
+	if codigoPessoa == "" {
+		return domain.Pessoa{}, errors.New("código da pessoa é obrigatório")
+	}
+
+	autorizador, err := s.BuscarPorCodigoPublico(ctx, codigoAutorizador)
+	if err != nil {
+		return domain.Pessoa{}, err
+	}
+	if !autorizador.EhResponsavel {
+		return domain.Pessoa{}, errors.New(
+			"somente um responsável pode habilitar outra pessoa",
+		)
+	}
+
+	pessoa, err := s.BuscarPorCodigoPublico(ctx, codigoPessoa)
+	if err != nil {
+		return domain.Pessoa{}, err
+	}
+	if pessoa.EhResponsavel {
+		return pessoa, nil
+	}
+
+	pessoa.EhResponsavel = true
+	return s.repositorio.Atualizar(ctx, pessoa)
+}
