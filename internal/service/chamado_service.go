@@ -32,6 +32,15 @@ type CadastrarChamadoEntrada struct {
 	Prioridade             domain.Prioridade
 }
 
+type AtualizarChamadoEntrada struct {
+	ID                int64
+	CodigoResponsavel string
+	Titulo            string
+	Descricao         string
+	Prioridade        domain.Prioridade
+	Status            domain.Status
+}
+
 func (s *ChamadoService) Cadastrar(ctx context.Context,
 	entrada CadastrarChamadoEntrada) (domain.Chamado, error) {
 
