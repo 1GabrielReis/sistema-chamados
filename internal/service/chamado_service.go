@@ -43,29 +43,18 @@ type AtualizarChamadoEntrada struct {
 
 func (s *ChamadoService) Cadastrar(ctx context.Context,
 	entrada CadastrarChamadoEntrada) (domain.Chamado, error) {
-
-	entrada.Titulo = strings.TrimSpace(entrada.Titulo)
-	if entrada.Titulo == "" {
-		return domain.Chamado{}, errors.New("título é obrigatório")
-	}
-
-	entrada.Descricao = strings.TrimSpace(entrada.Descricao)
-	if entrada.Descricao == "" {
-		return domain.Chamado{}, errors.New("descrição é obrigatória")
-	}
-
-	switch entrada.Prioridade {
-	case domain.PrioridadeBaixa,
-		domain.PrioridadeMedia,
-		domain.PrioridadeAlta:
-		// Prioridade válida; continua o método.
-	default:
-		return domain.Chamado{}, errors.New("prioridade inválida")
+	titulo, descricao, err := validarDadosChamado(
+		entrada.Titulo,
+		entrada.Descricao,
+		entrada.Prioridade,
+	)
+	if err != nil {
+		return domain.Chamado{}, err
 	}
 
 	entrada.CodigoSolicitante = strings.TrimSpace(entrada.CodigoSolicitante)
 	if entrada.CodigoSolicitante == "" {
-		return domain.Chamado{}, errors.New("código do solicitante é obrigatório")
+		return domain.Chamado{}, errors.New("código do responsável é obrigatório")
 	}
 
 	solicitante, err := s.repositorioPessoa.BuscarPorCodigoPublico(ctx, entrada.CodigoSolicitante)
@@ -98,8 +87,8 @@ func (s *ChamadoService) Cadastrar(ctx context.Context,
 	chamado := domain.Chamado{
 		Solicitante:  solicitante,
 		Responsavel:  responsavel,
-		Titulo:       entrada.Titulo,
-		Descricao:    entrada.Descricao,
+		Titulo:       titulo,
+		Descricao:    descricao,
 		Prioridade:   entrada.Prioridade,
 		Status:       domain.StatusAberto,
 		DataAbertura: time.Now(),
@@ -117,4 +106,27 @@ func (s *ChamadoService) BuscarPorID(ctx context.Context,
 
 func (s *ChamadoService) Listar(ctx context.Context) ([]domain.Chamado, error) {
 	return s.repositorioChamado.Listar(ctx)
+}
+
+func validarDadosChamado(titulo string, descricao string,
+	prioridade domain.Prioridade) (string, string, error) {
+	titulo = strings.TrimSpace(titulo)
+	if titulo == "" {
+		return "", "", errors.New("título é obrigatório")
+	}
+
+	descricao = strings.TrimSpace(descricao)
+	if descricao == "" {
+		return "", "", errors.New("descrição é obrigatória")
+	}
+
+	switch prioridade {
+	case domain.PrioridadeBaixa,
+		domain.PrioridadeMedia,
+		domain.PrioridadeAlta:
+		// Prioridade válida; continua o método.
+	default:
+		return "", "", errors.New("prioridade inválida")
+	}
+	return titulo, descricao, nil
 }
