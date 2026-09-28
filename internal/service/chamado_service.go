@@ -54,7 +54,7 @@ func (s *ChamadoService) Cadastrar(ctx context.Context,
 
 	entrada.CodigoSolicitante = strings.TrimSpace(entrada.CodigoSolicitante)
 	if entrada.CodigoSolicitante == "" {
-		return domain.Chamado{}, errors.New("código do responsável é obrigatório")
+		return domain.Chamado{}, errors.New("código do solicitante é obrigatório")
 	}
 
 	solicitante, err := s.repositorioPessoa.BuscarPorCodigoPublico(ctx, entrada.CodigoSolicitante)
@@ -62,26 +62,9 @@ func (s *ChamadoService) Cadastrar(ctx context.Context,
 		return domain.Chamado{}, err
 	}
 
-	var responsavel domain.Pessoa
-
-	if !entrada.DistribuicaoAutomatica {
-		entrada.CodigoResponsavel = strings.TrimSpace(entrada.CodigoResponsavel)
-		if entrada.CodigoResponsavel == "" {
-			return domain.Chamado{}, errors.New("código do solicitante é obrigatório")
-		}
-		responsavel, err = s.repositorioPessoa.BuscarPorCodigoPublico(ctx, entrada.CodigoResponsavel)
-		if err != nil {
-			return domain.Chamado{}, err
-		}
-	} else {
-		responsavel, err = s.repositorioPessoa.BuscarResponsavelComMenosChamadosAbertos(ctx)
-		if err != nil {
-			return domain.Chamado{}, err
-		}
-	}
-
-	if !responsavel.EhResponsavel {
-		return domain.Chamado{}, errors.New("pessoa informada não é responsável")
+	responsavel, err := s.resolverResponsavel(ctx, entrada.CodigoResponsavel, entrada.DistribuicaoAutomatica)
+	if err != nil {
+		return domain.Chamado{}, err
 	}
 
 	chamado := domain.Chamado{
@@ -129,4 +112,29 @@ func validarDadosChamado(titulo string, descricao string,
 		return "", "", errors.New("prioridade inválida")
 	}
 	return titulo, descricao, nil
+}
+
+func (s *ChamadoService) resolverResponsavel(ctx context.Context, codigoResponsavel string,
+	distribuicaoAutomatica bool) (domain.Pessoa, error) {
+	var responsavel domain.Pessoa
+	var err error
+	if distribuicaoAutomatica {
+		responsavel, err = s.repositorioPessoa.BuscarResponsavelComMenosChamadosAbertos(ctx)
+		if err != nil {
+			return domain.Pessoa{}, err
+		}
+	} else {
+		codigoResponsavel = strings.TrimSpace(codigoResponsavel)
+		if codigoResponsavel == "" {
+			return domain.Pessoa{}, errors.New("código do responsável é obrigatório")
+		}
+		responsavel, err = s.repositorioPessoa.BuscarPorCodigoPublico(ctx, codigoResponsavel)
+		if err != nil {
+			return domain.Pessoa{}, err
+		}
+	}
+	if !responsavel.EhResponsavel {
+		return domain.Pessoa{}, errors.New("pessoa informada não é responsável")
+	}
+	return responsavel, nil
 }
