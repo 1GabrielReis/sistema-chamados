@@ -33,12 +33,13 @@ type CadastrarChamadoEntrada struct {
 }
 
 type AtualizarChamadoEntrada struct {
-	ID                int64
-	CodigoResponsavel string
-	Titulo            string
-	Descricao         string
-	Prioridade        domain.Prioridade
-	Status            domain.Status
+	ID                     int64
+	CodigoResponsavel      string
+	DistribuicaoAutomatica bool
+	Titulo                 string
+	Descricao              string
+	Prioridade             domain.Prioridade
+	Status                 domain.Status
 }
 
 func (s *ChamadoService) Cadastrar(ctx context.Context,
@@ -89,6 +90,48 @@ func (s *ChamadoService) BuscarPorID(ctx context.Context,
 
 func (s *ChamadoService) Listar(ctx context.Context) ([]domain.Chamado, error) {
 	return s.repositorioChamado.Listar(ctx)
+}
+
+func (s *ChamadoService) Atualizar(ctx context.Context, entrada AtualizarChamadoEntrada) (domain.Chamado, error) {
+	id := entrada.ID
+	if id <= 0 {
+		return domain.Chamado{}, errors.New("id do chamado inválido")
+	}
+
+	titulo, descricao, err := validarDadosChamado(entrada.Titulo,
+		entrada.Descricao,
+		entrada.Prioridade)
+	if err != nil {
+		return domain.Chamado{}, err
+	}
+
+	switch entrada.Status {
+	case domain.StatusAberto,
+		domain.StatusEmAndamento,
+		domain.StatusFechado,
+		domain.StatusResolvido:
+	default:
+		return domain.Chamado{}, errors.New("status inválido")
+	}
+
+	chamado, err := s.repositorioChamado.BuscarPorID(ctx, id)
+	if err != nil {
+		return domain.Chamado{}, err
+	}
+
+	responsavel, err := s.resolverResponsavel(ctx, entrada.CodigoResponsavel, entrada.DistribuicaoAutomatica)
+	if err != nil {
+		return domain.Chamado{}, err
+	}
+
+	chamado.Responsavel = responsavel
+	chamado.Titulo = titulo
+	chamado.Descricao = descricao
+	chamado.Prioridade = entrada.Prioridade
+	chamado.Status = entrada.Status
+
+	return s.repositorioChamado.Atualizar(ctx, chamado)
+
 }
 
 func validarDadosChamado(titulo string, descricao string,
