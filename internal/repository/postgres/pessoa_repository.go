@@ -41,3 +41,26 @@ func (r *PessoaRepository) Criar(ctx context.Context, pessoa domain.Pessoa) (dom
 	return pessoa, err
 
 }
+
+func (r *PessoaRepository) BuscarPorCodigoPublico(ctx context.Context, registroPublico string) (domain.Pessoa, error) {
+	const consulta = `
+		SELECT id, registro_publico, nome, eh_responsavel, data_cadastro
+		FROM pessoas 
+		WHERE registro_publico = $1
+	`
+	var pessoa domain.Pessoa
+
+	err := r.pool.QueryRow(ctx, consulta, registroPublico).Scan(
+		&pessoa.ID,
+		&pessoa.RegistroPublico,
+		&pessoa.Nome,
+		&pessoa.EhResponsavel,
+		&pessoa.DataCadastro,
+	)
+
+	if err != nil {
+		return domain.Pessoa{}, err
+	}
+
+	return pessoa, nil
+}
