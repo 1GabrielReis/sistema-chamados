@@ -4,12 +4,15 @@ import (
 	"context"
 
 	"github.com/1GabrielReis/sistema-chamados/internal/domain"
+	"github.com/1GabrielReis/sistema-chamados/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type PessoaRepository struct {
 	pool *pgxpool.Pool
 }
+
+var _ repository.PessoaRepository = (*PessoaRepository)(nil)
 
 func NovoPessoaRepository(pool *pgxpool.Pool) *PessoaRepository {
 	return &PessoaRepository{
@@ -130,4 +133,42 @@ func (r *PessoaRepository) Atualizar(ctx context.Context, pessoa domain.Pessoa) 
 
 	return pessoa, nil
 
+}
+
+func (r *PessoaRepository) BuscarResponsavelComMenosChamadosAbertos(ctx context.Context) (domain.Pessoa, error) {
+	const consulta = `
+		SELECT
+			p.id,
+			p.registro_publico,
+			p.nome,
+			p.eh_responsavel,
+			p.data_cadastro
+		FROM pessoas AS p
+		LEFT JOIN chamados AS c 
+			ON c.responsavel_id = p.id
+			AND c.status IN ('aberto', 'em_andamento')
+		WHERE p.eh_responsavel = TRUE
+		GROUP BY
+			p.id,
+			p.registro_publico,
+			p.nome,
+			p.eh_responsavel,
+			p.data_cadastro
+		ORDER BY COUNT(c.id) ASC, p.id ASC
+		LIMIT 1
+	`
+	var pessoa domain.Pessoa
+
+	err := r.pool.QueryRow(ctx, consulta).Scan(
+		&pessoa.ID,
+		&pessoa.RegistroPublico,
+		&pessoa.Nome,
+		&pessoa.EhResponsavel,
+		&pessoa.DataCadastro,
+	)
+	if err != nil {
+		return domain.Pessoa{}, err
+	}
+
+	return pessoa, nil
 }
