@@ -4,12 +4,15 @@ import (
 	"context"
 
 	"github.com/1GabrielReis/sistema-chamados/internal/domain"
+	"github.com/1GabrielReis/sistema-chamados/internal/repository"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type ChamadoRepository struct {
 	pool *pgxpool.Pool
 }
+
+var _ repository.ChamadoRepository = (*ChamadoRepository)(nil)
 
 func NovoChamadoRepository(pool *pgxpool.Pool) *ChamadoRepository {
 	return &ChamadoRepository{
@@ -172,6 +175,38 @@ func (r *ChamadoRepository) Listar(ctx context.Context) ([]domain.Chamado, error
 
 }
 
+func (r *ChamadoRepository) Atualizar(ctx context.Context, chamado domain.Chamado) (domain.Chamado, error) {
+	const consulta = `
+		UPDATE chamados
+		SET responsavel_id = $1,
+			titulo = $2,
+			descricao = $3,
+			prioridade = $4,
+			status = $5
+		WHERE id = $6
+		RETURNING id, titulo, descricao, prioridade, status, data_abertura
+	`
+	err := r.pool.QueryRow(ctx, consulta,
+		chamado.Responsavel.ID,
+		chamado.Titulo,
+		chamado.Descricao,
+		chamado.Prioridade,
+		chamado.Status,
+		chamado.ID,
+	).Scan(
+		&chamado.ID,
+		&chamado.Titulo,
+		&chamado.Descricao,
+		&chamado.Prioridade,
+		&chamado.Status,
+		&chamado.DataAbertura,
+	)
+	if err != nil {
+		return domain.Chamado{}, err
+	}
+	return chamado, nil
+}
+
 func (r *ChamadoRepository) buscarPessoasPorID(ctx context.Context, ids []int64) ([]domain.Pessoa, error) {
 
 	const consulta = `
@@ -212,11 +247,6 @@ func (r *ChamadoRepository) buscarPessoasPorID(ctx context.Context, ids []int64)
 }
 
 /*
-func(r *ChamadoRepository)Atualizar(ctx context.Context, chamado domain.Chamado) (domain.Chamado, error){
-
-}
-
-
 for _, pessoa := range pessoas {
 
 			if chamado.Solicitante.ID == pessoa.ID {
