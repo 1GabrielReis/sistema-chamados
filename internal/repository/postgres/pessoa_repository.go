@@ -112,9 +112,11 @@ func (r *PessoaRepository) ListarResponsaveis(ctx context.Context) ([]domain.Pes
 func (r *PessoaRepository) Atualizar(ctx context.Context, pessoa domain.Pessoa) (domain.Pessoa, error) {
 	const consulta = `
 		UPDATE pessoas
-		SET  nome = $1, eh_responsavel = $2
+		SET  
+			nome = $1, 
+			eh_responsavel = $2
 		WHERE id = $3 
-		RETURNING  RETURNING id, registro_publico, nome, eh_responsavel, data_cadastro
+		RETURNING id, registro_publico, nome, eh_responsavel, data_cadastro
 	`
 	err := r.pool.QueryRow(ctx,
 		consulta, pessoa.Nome,
