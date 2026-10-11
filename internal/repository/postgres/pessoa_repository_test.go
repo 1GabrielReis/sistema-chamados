@@ -143,7 +143,7 @@ func TestPessoaRepository_BuscarPorCodigoPublico(t *testing.T) {
 
 }
 
-/*func TestPessoaRepository_ListarResponsaveis(t *testing.T) {
+func TestPessoaRepository_ListarResponsaveis(t *testing.T) {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		t.Skip("DATABASE_URL não definida")
@@ -250,7 +250,7 @@ func TestPessoaRepository_BuscarPorCodigoPublico(t *testing.T) {
 		t.Error("segundo responsável criado não apareceu na lista")
 	}
 
-}*/
+}
 
 func TestPessoaRepository_Atualizar(t *testing.T) {
 	databaseURL := os.Getenv("DATABASE_URL")
