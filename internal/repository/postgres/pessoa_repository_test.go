@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"os"
 	"testing"
 
@@ -327,6 +328,117 @@ func TestPessoaRepository_Atualizar(t *testing.T) {
 			"data de cadastro foi alterada: esperada %v, recebida %v",
 			pessoaCriada.DataCadastro,
 			pessoaAtualizada.DataCadastro,
+		)
+	}
+
+}
+
+func TestBuscarResponsavelComMenosChamadosAbertos(t *testing.T) {
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		t.Skip("DATABASE_URL não definida")
+	}
+
+	ctx := context.Background()
+
+	pool, err := database.Conectar(ctx, databaseURL)
+	if err != nil {
+		t.Fatalf("não foi possível conectar ao banco: %v", err)
+	}
+	t.Cleanup(pool.Close)
+
+	repositorioPessoa := NovoPessoaRepository(pool)
+	repositorioChamado := NovoChamadoRepository(pool)
+
+	pessoascriada := []domain.Pessoa{}
+	contador := 0
+
+	pessoaIDs := make([]int64, 0)
+	chamadoIDs := make([]int64, 0)
+
+	t.Cleanup(func() {
+		_, err := pool.Exec(
+			context.Background(),
+			"DELETE FROM chamados WHERE id = ANY($1::bigint[])",
+			chamadoIDs,
+		)
+		if err != nil {
+			t.Errorf("não foi possível remover chamados de teste: %v", err)
+		}
+
+		_, err = pool.Exec(
+			context.Background(),
+			"DELETE FROM pessoas WHERE id = ANY($1::bigint[])",
+			pessoaIDs,
+		)
+		if err != nil {
+			t.Errorf("não foi possível remover pessoas de teste: %v", err)
+		}
+	})
+
+	for len(pessoascriada) < 2 {
+		contador++
+		pessoa := domain.Pessoa{
+			RegistroPublico: fmt.Sprintf("TEST%d-%s", contador, rand.Text()),
+			Nome:            "Pessoa de teste",
+		}
+
+		pessoaCriada, err := repositorioPessoa.Criar(ctx, pessoa)
+		if err != nil {
+			t.Fatalf("não foi possível criar pessoa: %v", err)
+		}
+
+		pessoascriada = append(pessoascriada, pessoaCriada)
+		pessoaIDs = append(pessoaIDs, pessoaCriada.ID)
+	}
+
+	pessoaCriada := pessoascriada[0]
+	pessoascriada[1].EhResponsavel = true
+	pessoaAtualizada, err := repositorioPessoa.Atualizar(ctx, pessoascriada[1])
+	if err != nil {
+		t.Fatalf("não foi possível atualizar pessoa: %v", err)
+	}
+
+	responsaveis, err := repositorioPessoa.ListarResponsaveis(ctx)
+	if err != nil {
+		t.Fatalf("não foi possível buscar lista de responsaveis: %v", err)
+	}
+
+	contador = 0
+	for _, responsavel := range responsaveis {
+
+		if responsavel.ID == pessoaAtualizada.ID {
+			continue
+		}
+
+		contador++
+		chamado := domain.Chamado{
+			Solicitante: pessoaCriada,
+			Responsavel: responsavel,
+			Titulo:      fmt.Sprintf("titulo%d - TeST", contador),
+			Descricao:   "chamado de teste",
+			Prioridade:  "media",
+			Status:      "aberto",
+		}
+
+		chamadoCriado, err := repositorioChamado.Criar(ctx, chamado)
+		if err != nil {
+			t.Fatalf("não foi possível criar chmado: %v", err)
+		}
+
+		chamadoIDs = append(chamadoIDs, chamadoCriado.ID)
+	}
+
+	responsavel, err := repositorioPessoa.BuscarResponsavelComMenosChamadosAbertos(ctx)
+	if err != nil {
+		t.Fatalf("não foi possível buscar responsável com menos chamados: %v", err)
+	}
+
+	if responsavel.ID != pessoaAtualizada.ID {
+		t.Errorf(
+			"responsável incorreto: esperado ID %d, recebido ID %d",
+			pessoaAtualizada.ID,
+			responsavel.ID,
 		)
 	}
 
