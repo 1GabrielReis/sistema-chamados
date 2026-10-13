@@ -361,3 +361,102 @@ func TestChamadoRepository_Listar(t *testing.T) {
 	}
 
 }
+
+func TestChamadoRepository_Atualizar(t *testing.T) {
+	ctx, pool := abrirBancoTeste(t)
+
+	pessoaRepository := NovoPessoaRepository(pool)
+	chamadoRepository := NovoChamadoRepository(pool)
+
+	pessoaIDs := make([]int64, 0)
+	chamadoIDs := make([]int64, 0)
+
+	registrarLimpezaTeste(t, pool, &pessoaIDs, &chamadoIDs)
+
+	solicitante := criarSolicitante(t, ctx, pessoaRepository)
+	pessoaIDs = append(pessoaIDs, solicitante.ID)
+
+	responsavel1 := criarResponsavel(t, ctx, pessoaRepository)
+	pessoaIDs = append(pessoaIDs, responsavel1.ID)
+
+	responsavel2 := criarResponsavel(t, ctx, pessoaRepository)
+	pessoaIDs = append(pessoaIDs, responsavel2.ID)
+
+	chamado := criarChamado(t, ctx, chamadoRepository, solicitante, responsavel1)
+	chamadoIDs = append(chamadoIDs, chamado.ID)
+
+	dataAberturaOriginal := chamado.DataAbertura
+	chamado.Responsavel = responsavel2
+	chamado.Titulo = "Atuaalização -" + rand.Text()
+	chamado.Descricao = "atualização de chamado"
+	chamado.Prioridade = domain.PrioridadeBaixa
+	chamado.Status = domain.StatusEmAndamento
+
+	chamadoAtualizado, err := chamadoRepository.Atualizar(ctx, chamado)
+	if err != nil {
+		t.Fatalf("não foi possível atualizar chamado: %v", err)
+	}
+
+	chamadoPersistido, err := chamadoRepository.BuscarPorID(ctx, chamadoAtualizado.ID)
+	if err != nil {
+		t.Fatalf("não foi possível buscar chamado atualizado: %v", err)
+	}
+
+	if chamadoAtualizado.ID != chamado.ID {
+		t.Errorf("ID diferente: esperado %d, recebido %d",
+			chamado.ID,
+			chamadoAtualizado.ID)
+	}
+
+	if chamadoPersistido.Solicitante.ID != solicitante.ID {
+		t.Errorf(
+			"solicitante diferente: esperado ID %d, recebido ID %d",
+			chamado.Solicitante.ID,
+			chamadoPersistido.Solicitante.ID,
+		)
+	}
+
+	if chamadoPersistido.Solicitante.EhResponsavel {
+		t.Error("esperava solicitante como pessoa comum")
+	}
+
+	if chamadoPersistido.Responsavel.ID != responsavel2.ID {
+		t.Errorf(
+			"responsável diferente: esperado ID %d, recebido ID %d",
+			responsavel2.ID,
+			chamadoPersistido.Responsavel.ID,
+		)
+	}
+
+	if !chamadoPersistido.Responsavel.EhResponsavel {
+		t.Error("esperava pessoa responsável")
+	}
+
+	if chamado.Titulo != chamadoPersistido.Titulo {
+		t.Errorf("titulo diferente: esperado %q, recebido %q",
+			chamado.Titulo, chamadoPersistido.Titulo)
+	}
+
+	if chamado.Descricao != chamadoPersistido.Descricao {
+		t.Errorf("discricao diferente: esperado %q, recebido %q",
+			chamado.Descricao, chamadoPersistido.Descricao)
+	}
+
+	if chamado.Prioridade != chamadoPersistido.Prioridade {
+		t.Errorf("prioridade diferente: esperado %q, recebido %q",
+			chamado.Prioridade, chamadoPersistido.Prioridade)
+	}
+
+	if chamado.Status != chamadoPersistido.Status {
+		t.Errorf("status diferente: esperado %q, recebido %q",
+			chamado.Status, chamadoPersistido.Status)
+	}
+
+	if !chamadoPersistido.DataAbertura.Equal(dataAberturaOriginal) {
+		t.Errorf(
+			"data de abertura foi alterada: esperada %v, recebida %v",
+			dataAberturaOriginal,
+			chamadoPersistido.DataAbertura,
+		)
+	}
+}
