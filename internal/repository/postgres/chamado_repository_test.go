@@ -283,3 +283,81 @@ func TestChamadoRepository_BuscarPorID(t *testing.T) {
 	}
 
 }
+
+func TestChamadoRepository_Listar(t *testing.T) {
+	ctx, pool := abrirBancoTeste(t)
+
+	pessoaRepository := NovoPessoaRepository(pool)
+	chamadoRepository := NovoChamadoRepository(pool)
+
+	pessoaIDs := make([]int64, 0)
+	chamadoIDs := make([]int64, 0)
+
+	registrarLimpezaTeste(t, pool, &pessoaIDs, &chamadoIDs)
+
+	solicitante1 := criarSolicitante(t, ctx, pessoaRepository)
+	pessoaIDs = append(pessoaIDs, solicitante1.ID)
+
+	solicitante2 := criarSolicitante(t, ctx, pessoaRepository)
+	pessoaIDs = append(pessoaIDs, solicitante2.ID)
+
+	responsavel1 := criarResponsavel(t, ctx, pessoaRepository)
+	pessoaIDs = append(pessoaIDs, responsavel1.ID)
+
+	responsavel2 := criarResponsavel(t, ctx, pessoaRepository)
+	pessoaIDs = append(pessoaIDs, responsavel2.ID)
+
+	chamado1 := criarChamado(t, ctx, chamadoRepository, solicitante1, responsavel1)
+	chamadoIDs = append(chamadoIDs, chamado1.ID)
+
+	chamado2 := criarChamado(t, ctx, chamadoRepository, solicitante1, responsavel2)
+	chamadoIDs = append(chamadoIDs, chamado2.ID)
+
+	chamado3 := criarChamado(t, ctx, chamadoRepository, solicitante2, responsavel1)
+	chamadoIDs = append(chamadoIDs, chamado3.ID)
+
+	chamado4 := criarChamado(t, ctx, chamadoRepository, solicitante2, responsavel2)
+	chamadoIDs = append(chamadoIDs, chamado4.ID)
+
+	esperados := map[int64]bool{
+		chamado1.ID: false,
+		chamado2.ID: false,
+		chamado3.ID: false,
+		chamado4.ID: false,
+	}
+
+	chamados, err := chamadoRepository.Listar(ctx)
+	if err != nil {
+		t.Fatalf("não foi possível listar chamados: %v", err)
+	}
+
+	for _, chamado := range chamados {
+
+		_, pertenceAoTeste := esperados[chamado.ID]
+		if !pertenceAoTeste {
+			continue
+		}
+
+		esperados[chamado.ID] = true
+
+		if chamado.Solicitante.EhResponsavel {
+			t.Error("esperava solicitante como pessoa comum")
+		}
+
+		if !chamado.Responsavel.EhResponsavel {
+			t.Error("esperava pessoa responsável")
+		}
+
+		if chamado.DataAbertura.IsZero() {
+			t.Error("esperava data de abertura preenchida")
+		}
+
+	}
+
+	for id, encontrado := range esperados {
+		if !encontrado {
+			t.Errorf("chamado de teste não apareceu na listagem: id=%d", id)
+		}
+	}
+
+}
