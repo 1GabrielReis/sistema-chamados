@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/1GabrielReis/sistema-chamados/internal/database"
@@ -32,5 +33,15 @@ func main() {
 	_ = service.NovoPessoaService(pessoaRepository)
 	_ = service.NovoChamadoService(chamadoRepository, pessoaRepository)
 
-	fmt.Println("conexão com o PostgreSQL realizada com sucesso")
+	mux := http.NewServeMux()
+	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		fmt.Fprint(w, "ok")
+	})
+
+	fmt.Println("servidor iniciado em http://localhost:8080")
+	if err := http.ListenAndServe(":8080", mux); err != nil {
+		fmt.Printf("erro ao iniciar servidor HTTP: %v\n", err)
+	}
+
 }
