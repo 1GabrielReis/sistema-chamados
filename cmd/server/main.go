@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/1GabrielReis/sistema-chamados/internal/database"
+	"github.com/1GabrielReis/sistema-chamados/internal/handler"
 	"github.com/1GabrielReis/sistema-chamados/internal/repository/postgres"
 	"github.com/1GabrielReis/sistema-chamados/internal/service"
 )
@@ -30,14 +31,18 @@ func main() {
 	pessoaRepository := postgres.NovoPessoaRepository(pool)
 	chamadoRepository := postgres.NovoChamadoRepository(pool)
 
-	_ = service.NovoPessoaService(pessoaRepository)
+	pessoaService := service.NovoPessoaService(pessoaRepository)
 	_ = service.NovoChamadoService(chamadoRepository, pessoaRepository)
+
+	pessoaHandler := handler.NovoPessoaHandler(pessoaService)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		fmt.Fprint(w, "ok")
 	})
+
+	mux.HandleFunc("POST /pessoas", pessoaHandler.Cadastrar)
 
 	fmt.Println("servidor iniciado em http://localhost:8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
