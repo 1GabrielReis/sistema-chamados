@@ -66,6 +66,29 @@ func (h *PessoaHandler) BuscarPorCodigoPublico(w http.ResponseWriter, r *http.Re
 
 }
 
+func (h *PessoaHandler) ListarResponsaveis(w http.ResponseWriter, r *http.Request) {
+
+	pessoas, err := h.pessoaService.ListarResponsaveis(r.Context())
+	if err != nil {
+		fmt.Printf("erro ao listar responsáveis: %v\n", err)
+		http.Error(w, "erro interno ao listar responsáveis", http.StatusInternalServerError)
+		return
+	}
+
+	saida := make([]pessoaResposta, 0, len(pessoas))
+
+	for _, pessoa := range pessoas {
+		saida = append(saida, novaPessoaResposta(pessoa))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+	}
+}
+
 func novaPessoaResposta(pessoa domain.Pessoa) pessoaResposta {
 	return pessoaResposta{
 		RegistroPublico: pessoa.RegistroPublico,
