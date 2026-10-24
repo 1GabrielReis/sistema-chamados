@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/1GabrielReis/sistema-chamados/internal/domain"
 	"github.com/1GabrielReis/sistema-chamados/internal/service"
 )
 
@@ -33,16 +34,42 @@ func (h *PessoaHandler) Cadastrar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	saida := pessoaResposta{
-		RegistroPublico: pessoa.RegistroPublico,
-		Nome:            pessoa.Nome,
-		EhResponsavel:   pessoa.EhResponsavel,
-	}
+	saida := novaPessoaResposta(pessoa)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
 		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+	}
+}
+
+func (h *PessoaHandler) BuscarPorCodigoPublico(w http.ResponseWriter, r *http.Request) {
+
+	codigo := r.PathValue("codigo")
+
+	pessoa, err := h.pessoaService.BuscarPorCodigoPublico(r.Context(), codigo)
+	if err != nil {
+		fmt.Printf("erro ao buscar pessoa pelo código %q: %v\n", codigo, err)
+		http.Error(w, "pessoa não encontrada", http.StatusNotFound)
+		return
+	}
+
+	saida := novaPessoaResposta(pessoa)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+	}
+
+}
+
+func novaPessoaResposta(pessoa domain.Pessoa) pessoaResposta {
+	return pessoaResposta{
+		RegistroPublico: pessoa.RegistroPublico,
+		Nome:            pessoa.Nome,
+		EhResponsavel:   pessoa.EhResponsavel,
 	}
 }

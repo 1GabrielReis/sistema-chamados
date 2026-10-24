@@ -43,6 +43,7 @@ func main() {
 	})
 
 	mux.HandleFunc("POST /pessoas", pessoaHandler.Cadastrar)
+	mux.HandleFunc("GET /pessoas/{codigo}", pessoaHandler.BuscarPorCodigoPublico)
 
 	fmt.Println("servidor iniciado em http://localhost:8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
