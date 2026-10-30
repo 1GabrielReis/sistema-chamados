@@ -46,6 +46,7 @@ func main() {
 	mux.HandleFunc("GET /pessoas/{codigo}", pessoaHandler.BuscarPorCodigoPublico)
 	mux.HandleFunc("GET /pessoas/responsaveis", pessoaHandler.ListarResponsaveis)
 	mux.HandleFunc("PATCH /pessoas/{codigo}", pessoaHandler.Atualizar)
+	mux.HandleFunc("PATCH /pessoas/{codigo}/responsavel", pessoaHandler.HabilitarComoResponsavel)
 
 	fmt.Println("servidor iniciado em http://localhost:8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {

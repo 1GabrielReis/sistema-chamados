@@ -119,6 +119,35 @@ func (h *PessoaHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *PessoaHandler) HabilitarComoResponsavel(w http.ResponseWriter, r *http.Request) {
+	codigo := r.PathValue("codigo")
+	var entrada habilitarResponsavelEntrada
+
+	err := json.NewDecoder(r.Body).Decode(&entrada)
+	if err != nil {
+		fmt.Printf("erro ao interpretar JSON para habilitar pessoa como responsável: %v\n", err)
+		http.Error(w, "não foi possível atualizar responsavel", http.StatusBadRequest)
+		return
+	}
+
+	pessoa, err := h.pessoaService.HabilitarComoResponsavel(r.Context(), entrada.CodigoAutorizador, codigo)
+	if err != nil {
+		fmt.Printf("erro ao habilitar pessoa como responsável: %v\n", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	saida := novaPessoaResposta(pessoa)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+	}
+
+}
+
 func novaPessoaResposta(pessoa domain.Pessoa) pessoaResposta {
 	return pessoaResposta{
 		RegistroPublico: pessoa.RegistroPublico,

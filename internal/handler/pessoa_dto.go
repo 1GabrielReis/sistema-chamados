@@ -9,3 +9,7 @@ type pessoaResposta struct {
 	Nome            string `json:"nome"`
 	EhResponsavel   bool   `json:"eh_responsavel"`
 }
+
+type habilitarResponsavelEntrada struct {
+	CodigoAutorizador string `json:"codigo_autorizador"`
+}
