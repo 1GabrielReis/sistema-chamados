@@ -1,6 +1,6 @@
 package handler
 
-type cadastrarPessoaEntrada struct {
+type pessoaEntrada struct {
 	Nome string `json:"nome"`
 }
 

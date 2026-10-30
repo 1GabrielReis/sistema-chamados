@@ -20,7 +20,7 @@ func NovoPessoaHandler(pessoaService *service.PessoaService) *PessoaHandler {
 }
 
 func (h *PessoaHandler) Cadastrar(w http.ResponseWriter, r *http.Request) {
-	var entrada cadastrarPessoaEntrada
+	var entrada pessoaEntrada
 
 	err := json.NewDecoder(r.Body).Decode(&entrada)
 	if err != nil {
@@ -80,6 +80,34 @@ func (h *PessoaHandler) ListarResponsaveis(w http.ResponseWriter, r *http.Reques
 	for _, pessoa := range pessoas {
 		saida = append(saida, novaPessoaResposta(pessoa))
 	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+	}
+}
+
+func (h *PessoaHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
+
+	codigo := r.PathValue("codigo")
+	var entrada pessoaEntrada
+
+	err := json.NewDecoder(r.Body).Decode(&entrada)
+	if err != nil {
+		fmt.Printf("erro ao atualizar pessoa: %v\n", err)
+		http.Error(w, "não foi possível atualizar pessoa", http.StatusNotFound)
+		return
+	}
+
+	pessoa, err := h.pessoaService.Atualizar(r.Context(), codigo, entrada.Nome)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	saida := novaPessoaResposta(pessoa)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
