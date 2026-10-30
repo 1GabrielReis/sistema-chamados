@@ -24,13 +24,15 @@ func (h *PessoaHandler) Cadastrar(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&entrada)
 	if err != nil {
+		fmt.Printf("erro ao interpretar JSON do cadastro de pessoa: %v\n", err)
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
 	pessoa, err := h.pessoaService.Cadastrar(r.Context(), entrada.Nome)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Printf("erro ao cadastrar pessoa: %v\n", err)
+		http.Error(w, "não foi possível cadastrar pessoa", http.StatusBadRequest)
 		return
 	}
 
