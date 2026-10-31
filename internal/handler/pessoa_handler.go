@@ -98,7 +98,7 @@ func (h *PessoaHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&entrada)
 	if err != nil {
-		fmt.Printf("erro ao interpretar JSON de atualização da pessoa: %v\n", err)
+		fmt.Printf("erro ao interpretar JSON de atualização de pessoa: %v\n", err)
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
@@ -127,14 +127,14 @@ func (h *PessoaHandler) HabilitarComoResponsavel(w http.ResponseWriter, r *http.
 	err := json.NewDecoder(r.Body).Decode(&entrada)
 	if err != nil {
 		fmt.Printf("erro ao interpretar JSON para habilitar pessoa como responsável: %v\n", err)
-		http.Error(w, "não foi possível atualizar responsavel", http.StatusBadRequest)
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
 	pessoa, err := h.pessoaService.HabilitarComoResponsavel(r.Context(), entrada.CodigoAutorizador, codigo)
 	if err != nil {
 		fmt.Printf("erro ao habilitar pessoa como responsável: %v\n", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		http.Error(w, "não foi possível habilitar pessoa como responsável", http.StatusBadRequest)
 		return
 	}
 
