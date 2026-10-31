@@ -25,7 +25,7 @@ func (h *ChamadoHandler) Cadastrar(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&entrada)
 	if err != nil {
-		fmt.Printf("erro ao interpretar JSON do cadastro de chamado: %v\n", err)
+		fmt.Printf("JSON inválido: %v\n", err)
 		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
@@ -53,12 +53,12 @@ func (h *ChamadoHandler) BuscarPorID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(idTexto, 10, 64)
 	if err != nil {
-		fmt.Printf("erro ao converter ID do chamado: %v\n", err)
+		fmt.Printf("ID malformado ou não positivo: %v\n", err)
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 	if id <= 0 {
-		fmt.Printf("ID do chamado inválido: %d\n", id)
+		fmt.Printf("ID malformado ou não positivo: %d\n", id)
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
@@ -108,12 +108,12 @@ func (h *ChamadoHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
-		fmt.Printf("erro ao converter ID do chamado: %v\n", err)
+		fmt.Printf("ID malformado ou não positivoo: %v\n", err)
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
 	if id <= 0 {
-		fmt.Printf("ID do chamado inválido: %d\n", id)
+		fmt.Printf("ID malformado ou não positivo: %d\n", id)
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
 	}
