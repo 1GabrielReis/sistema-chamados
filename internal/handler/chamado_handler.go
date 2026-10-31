@@ -43,7 +43,7 @@ func (h *ChamadoHandler) Cadastrar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON do chamado: %v\n", err)
 	}
 }
 
@@ -53,12 +53,14 @@ func (h *ChamadoHandler) BuscarPorID(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(idTexto, 10, 64)
 	if err != nil {
-		fmt.Printf("Erro de id: %v", err)
+		fmt.Printf("erro ao converter ID do chamado: %v\n", err)
 		http.Error(w, "ID inválido", http.StatusBadRequest)
 		return
-	} else if id <= 0 {
-		fmt.Printf("Erro de id: %d", id)
+	}
+	if id <= 0 {
+		fmt.Printf("ID do chamado inválido: %d\n", id)
 		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
 	}
 
 	chamado, err := h.chamadoService.BuscarPorID(r.Context(), id)
@@ -74,7 +76,7 @@ func (h *ChamadoHandler) BuscarPorID(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON do chamado: %v\n", err)
 	}
 
 }
@@ -98,7 +100,47 @@ func (h *ChamadoHandler) Listar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON do chamado: %v\n", err)
+	}
+}
+
+func (h *ChamadoHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil {
+		fmt.Printf("erro ao converter ID do chamado: %v\n", err)
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+	if id <= 0 {
+		fmt.Printf("ID do chamado inválido: %d\n", id)
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	}
+
+	var entrada chamadoAtualizacaoEntrada
+
+	err = json.NewDecoder(r.Body).Decode(&entrada)
+	if err != nil {
+		fmt.Printf("erro ao interpretar JSON de atualização do chamado: %v\n", err)
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
+		return
+	}
+
+	chamado, err := h.chamadoService.Atualizar(r.Context(), novaChamadaAtualizarEntrada(id, entrada))
+	if err != nil {
+		fmt.Printf("erro ao atualizar chamado de ID %d: %v\n", id, err)
+		http.Error(w, "não foi possível atualizar chamado", http.StatusBadRequest)
+		return
+	}
+
+	saida := novaChamadoResposta(chamado)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON do chamado: %v\n", err)
 	}
 }
 
@@ -110,6 +152,18 @@ func novaChamadaCadastroEntrada(chamadoEntrada chamadoCadastroEntrada) service.C
 		Titulo:                 chamadoEntrada.Titulo,
 		Descricao:              chamadoEntrada.Descricao,
 		Prioridade:             domain.Prioridade(chamadoEntrada.Prioridade),
+	}
+}
+
+func novaChamadaAtualizarEntrada(id int64, chamadoEntrada chamadoAtualizacaoEntrada) service.AtualizarChamadoEntrada {
+	return service.AtualizarChamadoEntrada{
+		ID:                     id,
+		CodigoResponsavel:      chamadoEntrada.CodigoResponsavel,
+		DistribuicaoAutomatica: chamadoEntrada.DistribuicaoAutomatica,
+		Titulo:                 chamadoEntrada.Titulo,
+		Descricao:              chamadoEntrada.Descricao,
+		Prioridade:             domain.Prioridade(chamadoEntrada.Prioridade),
+		Status:                 domain.Status(chamadoEntrada.Status),
 	}
 }
 

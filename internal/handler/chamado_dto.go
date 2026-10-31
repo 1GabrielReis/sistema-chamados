@@ -11,6 +11,15 @@ type chamadoCadastroEntrada struct {
 	Prioridade             string `json:"prioridade"`
 }
 
+type chamadoAtualizacaoEntrada struct {
+	CodigoResponsavel      string `json:"codigo_responsavel"`
+	DistribuicaoAutomatica bool   `json:"distribuicao_automatica"`
+	Titulo                 string `json:"titulo"`
+	Descricao              string `json:"descricao"`
+	Prioridade             string `json:"prioridade"`
+	Status                 string `json:"status"`
+}
+
 type chamadoResposta struct {
 	ID           int64          `json:"id"`
 	Solicitante  pessoaResposta `json:"solicitante"`
