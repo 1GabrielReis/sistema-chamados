@@ -42,7 +42,7 @@ func (h *PessoaHandler) Cadastrar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON de pessoa: %v\n", err)
 	}
 }
 
@@ -63,7 +63,7 @@ func (h *PessoaHandler) BuscarPorCodigoPublico(w http.ResponseWriter, r *http.Re
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON de pessoa: %v\n", err)
 	}
 
 }
@@ -87,7 +87,7 @@ func (h *PessoaHandler) ListarResponsaveis(w http.ResponseWriter, r *http.Reques
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON de pessoa: %v\n", err)
 	}
 }
 
@@ -98,14 +98,15 @@ func (h *PessoaHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&entrada)
 	if err != nil {
-		fmt.Printf("erro ao atualizar pessoa: %v\n", err)
-		http.Error(w, "não foi possível atualizar pessoa", http.StatusNotFound)
+		fmt.Printf("erro ao interpretar JSON de atualização da pessoa: %v\n", err)
+		http.Error(w, "JSON inválido", http.StatusBadRequest)
 		return
 	}
 
 	pessoa, err := h.pessoaService.Atualizar(r.Context(), codigo, entrada.Nome)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusBadRequest)
+		fmt.Printf("erro ao atualizar pessoa com código %q: %v\n", codigo, err)
+		http.Error(w, "não foi possível atualizar pessoa", http.StatusBadRequest)
 		return
 	}
 
@@ -115,7 +116,7 @@ func (h *PessoaHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON de pessoa: %v\n", err)
 	}
 }
 
@@ -143,7 +144,7 @@ func (h *PessoaHandler) HabilitarComoResponsavel(w http.ResponseWriter, r *http.
 	w.WriteHeader(http.StatusOK)
 
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
-		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+		fmt.Printf("erro ao gerar resposta JSON de pessoa: %v\n", err)
 	}
 
 }
