@@ -79,6 +79,29 @@ func (h *ChamadoHandler) BuscarPorID(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (h *ChamadoHandler) Listar(w http.ResponseWriter, r *http.Request) {
+
+	chamados, err := h.chamadoService.Listar(r.Context())
+	if err != nil {
+		fmt.Printf("erro ao listar chamados: %v\n", err)
+		http.Error(w, "erro interno ao listar chamados", http.StatusInternalServerError)
+		return
+	}
+
+	saida := make([]chamadoResposta, 0, len(chamados))
+
+	for _, chamado := range chamados {
+		saida = append(saida, novaChamadoResposta(chamado))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+	}
+}
+
 func novaChamadaCadastroEntrada(chamadoEntrada chamadoCadastroEntrada) service.CadastrarChamadoEntrada {
 	return service.CadastrarChamadoEntrada{
 		CodigoSolicitante:      chamadoEntrada.CodigoSolicitante,

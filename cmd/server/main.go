@@ -51,6 +51,7 @@ func main() {
 
 	mux.HandleFunc("POST /chamados", chamadoHandler.Cadastrar)
 	mux.HandleFunc("GET /chamados/{id}", chamadoHandler.BuscarPorID)
+	mux.HandleFunc("GET /chamados", chamadoHandler.Listar)
 
 	fmt.Println("servidor iniciado em http://localhost:8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
