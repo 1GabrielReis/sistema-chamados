@@ -32,9 +32,10 @@ func main() {
 	chamadoRepository := postgres.NovoChamadoRepository(pool)
 
 	pessoaService := service.NovoPessoaService(pessoaRepository)
-	_ = service.NovoChamadoService(chamadoRepository, pessoaRepository)
+	chamadoService := service.NovoChamadoService(chamadoRepository, pessoaRepository)
 
 	pessoaHandler := handler.NovoPessoaHandler(pessoaService)
+	chamadoHandler := handler.NovoChamadoHandler(chamadoService)
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
@@ -47,6 +48,8 @@ func main() {
 	mux.HandleFunc("GET /pessoas/responsaveis", pessoaHandler.ListarResponsaveis)
 	mux.HandleFunc("PATCH /pessoas/{codigo}", pessoaHandler.Atualizar)
 	mux.HandleFunc("PATCH /pessoas/{codigo}/responsavel", pessoaHandler.HabilitarComoResponsavel)
+
+	mux.HandleFunc("POST /chamados", chamadoHandler.Cadastrar)
 
 	fmt.Println("servidor iniciado em http://localhost:8080")
 	if err := http.ListenAndServe(":8080", mux); err != nil {
