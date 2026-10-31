@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/1GabrielReis/sistema-chamados/internal/domain"
 	"github.com/1GabrielReis/sistema-chamados/internal/service"
@@ -44,6 +45,38 @@ func (h *ChamadoHandler) Cadastrar(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(saida); err != nil {
 		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
 	}
+}
+
+func (h *ChamadoHandler) BuscarPorID(w http.ResponseWriter, r *http.Request) {
+
+	idTexto := r.PathValue("id")
+
+	id, err := strconv.ParseInt(idTexto, 10, 64)
+	if err != nil {
+		fmt.Printf("Erro de id: %v", err)
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+		return
+	} else if id <= 0 {
+		fmt.Printf("Erro de id: %d", id)
+		http.Error(w, "ID inválido", http.StatusBadRequest)
+	}
+
+	chamado, err := h.chamadoService.BuscarPorID(r.Context(), id)
+	if err != nil {
+		fmt.Printf("erro ao buscar chamado pelo id %d: %v\n", id, err)
+		http.Error(w, "chamado não encontrado", http.StatusNotFound)
+		return
+	}
+
+	saida := novaChamadoResposta(chamado)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON: %v\n", err)
+	}
+
 }
 
 func novaChamadaCadastroEntrada(chamadoEntrada chamadoCadastroEntrada) service.CadastrarChamadoEntrada {
