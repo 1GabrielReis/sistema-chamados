@@ -1,0 +1,9 @@
+.git
+.gitignore
+.env
+README.md
+**/*_test.go
+**/*.test.js
+**/.gitkeep
+**/node_modules
+**/dist
