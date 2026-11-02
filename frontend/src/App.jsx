@@ -12,12 +12,14 @@ import {
   LifeBuoy,
   LoaderCircle,
   Menu,
+  Moon,
   Pencil,
   Plus,
   RefreshCw,
   Search,
   ShieldCheck,
   Sparkles,
+  Sun,
   TicketCheck,
   UserPlus,
   UserRoundSearch,
@@ -50,6 +52,24 @@ function formatarData(data) {
   }).format(new Date(data));
 }
 
+async function copiarTexto(texto) {
+  if (navigator.clipboard?.writeText) {
+    await navigator.clipboard.writeText(texto);
+    return;
+  }
+
+  const area = document.createElement("textarea");
+  area.value = texto;
+  area.style.position = "fixed";
+  area.style.opacity = "0";
+  document.body.appendChild(area);
+  area.select();
+  const copiado = document.execCommand("copy");
+  area.remove();
+
+  if (!copiado) throw new Error("Não foi possível copiar o texto.");
+}
+
 function App() {
   const [secao, setSecao] = useState("chamados");
   const [menuAberto, setMenuAberto] = useState(false);
@@ -60,6 +80,11 @@ function App() {
   const [erro, setErro] = useState("");
   const [modal, setModal] = useState(null);
   const [toast, setToast] = useState(null);
+  const [tema, setTema] = useState(() => {
+    const temaSalvo = window.localStorage.getItem("tema");
+    if (temaSalvo === "dark" || temaSalvo === "light") return temaSalvo;
+    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  });
 
   async function carregarDados(silencioso = false) {
     if (!silencioso) setCarregando(true);
@@ -83,6 +108,11 @@ function App() {
   useEffect(() => {
     carregarDados();
   }, []);
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = tema;
+    window.localStorage.setItem("tema", tema);
+  }, [tema]);
 
   useEffect(() => {
     if (!toast) return undefined;
@@ -117,7 +147,9 @@ function App() {
       <main className="main-content">
         <Topbar
           secao={secao}
+          tema={tema}
           aoAbrirMenu={() => setMenuAberto(true)}
+          aoAlternarTema={() => setTema((atual) => (atual === "dark" ? "light" : "dark"))}
           aoAtualizar={() => carregarDados()}
           carregando={carregando}
         />
@@ -230,7 +262,7 @@ function Sidebar({ secao, menuAberto, aoFechar, aoNavegar }) {
   );
 }
 
-function Topbar({ secao, aoAbrirMenu, aoAtualizar, carregando }) {
+function Topbar({ secao, tema, aoAbrirMenu, aoAlternarTema, aoAtualizar, carregando }) {
   return (
     <header className="topbar">
       <div className="topbar__title">
@@ -243,10 +275,21 @@ function Topbar({ secao, aoAbrirMenu, aoAtualizar, carregando }) {
           <strong>{secao === "chamados" ? "Visão geral" : "Pessoas e responsáveis"}</strong>
         </div>
       </div>
-      <button type="button" className="btn btn--quiet" onClick={aoAtualizar} disabled={carregando}>
-        <RefreshCw size={17} className={carregando ? "is-spinning" : ""} />
-        Atualizar
-      </button>
+      <div className="topbar__actions">
+        <button
+          type="button"
+          className="icon-btn theme-toggle"
+          onClick={aoAlternarTema}
+          aria-label={tema === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+          title={tema === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+        >
+          {tema === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+        </button>
+        <button type="button" className="btn btn--quiet" onClick={aoAtualizar} disabled={carregando}>
+          <RefreshCw size={17} className={carregando ? "is-spinning" : ""} />
+          <span>Atualizar</span>
+        </button>
+      </div>
     </header>
   );
 }
@@ -683,6 +726,7 @@ function ChamadoModal({
   const editando = modo === "editar";
   const [salvando, setSalvando] = useState(false);
   const [erro, setErro] = useState("");
+  const [copiado, setCopiado] = useState("");
   const [form, setForm] = useState({
     codigo_solicitante: chamado?.solicitante.registro_publico ?? "",
     codigo_responsavel: chamado?.responsavel.registro_publico ?? "",
@@ -692,9 +736,27 @@ function ChamadoModal({
     prioridade: chamado?.prioridade ?? "media",
     status: chamado?.status ?? "aberto",
   });
+  const solicitanteSelecionado = solicitantes.find(
+    (item) => item.registro_publico === form.codigo_solicitante,
+  );
+  const responsavelSelecionado = responsaveis.find(
+    (item) => item.registro_publico === form.codigo_responsavel,
+  );
 
   function alterar(campo, valor) {
     setForm((atual) => ({ ...atual, [campo]: valor }));
+  }
+
+  async function copiarPessoa(pessoa, tipo) {
+    if (!pessoa) return;
+
+    try {
+      await copiarTexto(`${pessoa.nome} · ${pessoa.registro_publico}`);
+      setCopiado(tipo);
+      window.setTimeout(() => setCopiado(""), 1600);
+    } catch (error) {
+      setErro(error.message || "Não foi possível copiar os dados da pessoa.");
+    }
   }
 
   async function enviar(event) {
@@ -760,25 +822,38 @@ function ChamadoModal({
             {erro && <div className="inline-error"><AlertTriangle size={17} /> {erro}</div>}
 
             {!editando && (
-              <label className="field field--full">
-                <span>Solicitante</span>
-                <select
-                  required
-                  value={form.codigo_solicitante}
-                  onChange={(event) => alterar("codigo_solicitante", event.target.value)}
-                >
-                  <option value="">
-                    {solicitantes.length === 0
-                      ? "Nenhum solicitante cadastrado"
-                      : "Selecione um solicitante"}
-                  </option>
-                  {solicitantes.map((item) => (
-                    <option key={item.registro_publico} value={item.registro_publico}>
-                      {item.nome} · {item.registro_publico}
+              <div className="field field--full">
+                <label htmlFor="solicitante">Solicitante</label>
+                <div className="select-with-action">
+                  <select
+                    id="solicitante"
+                    required
+                    value={form.codigo_solicitante}
+                    onChange={(event) => alterar("codigo_solicitante", event.target.value)}
+                  >
+                    <option value="">
+                      {solicitantes.length === 0
+                        ? "Nenhum solicitante cadastrado"
+                        : "Selecione um solicitante"}
                     </option>
-                  ))}
-                </select>
-              </label>
+                    {solicitantes.map((item) => (
+                      <option key={item.registro_publico} value={item.registro_publico}>
+                        {item.nome} · {item.registro_publico}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    className="icon-btn copy-select-btn"
+                    disabled={!solicitanteSelecionado}
+                    onClick={() => copiarPessoa(solicitanteSelecionado, "solicitante")}
+                    aria-label="Copiar solicitante selecionado"
+                    title={copiado === "solicitante" ? "Copiado" : "Copiar solicitante"}
+                  >
+                    {copiado === "solicitante" ? <Check size={17} /> : <Clipboard size={17} />}
+                  </button>
+                </div>
+              </div>
             )}
 
             <label className="field field--full">
@@ -843,18 +918,30 @@ function ChamadoModal({
               {!form.distribuicao_automatica && (
                 <label className="field">
                   <span>Responsável</span>
-                  <select
-                    required
-                    value={form.codigo_responsavel}
-                    onChange={(event) => alterar("codigo_responsavel", event.target.value)}
-                  >
-                    <option value="">Selecione um responsável</option>
-                    {responsaveis.map((item) => (
-                      <option key={item.registro_publico} value={item.registro_publico}>
-                        {item.nome} · {item.registro_publico}
-                      </option>
-                    ))}
-                  </select>
+                  <div className="select-with-action">
+                    <select
+                      required
+                      value={form.codigo_responsavel}
+                      onChange={(event) => alterar("codigo_responsavel", event.target.value)}
+                    >
+                      <option value="">Selecione um responsável</option>
+                      {responsaveis.map((item) => (
+                        <option key={item.registro_publico} value={item.registro_publico}>
+                          {item.nome} · {item.registro_publico}
+                        </option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="icon-btn copy-select-btn"
+                      disabled={!responsavelSelecionado}
+                      onClick={() => copiarPessoa(responsavelSelecionado, "responsavel")}
+                      aria-label="Copiar responsável selecionado"
+                      title={copiado === "responsavel" ? "Copiado" : "Copiar responsável"}
+                    >
+                      {copiado === "responsavel" ? <Check size={17} /> : <Clipboard size={17} />}
+                    </button>
+                  </div>
                 </label>
               )}
             </div>

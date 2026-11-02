@@ -245,6 +245,12 @@ button:disabled {
   gap: 12px;
 }
 
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
 .topbar__title span,
 .topbar__title strong {
   display: block;
@@ -823,10 +829,30 @@ tbody tr:last-child td {
   gap: 6px;
 }
 
-.field > span {
+.field > span,
+.field > label {
   color: var(--ink-700);
   font-size: 10px;
   font-weight: 700;
+}
+
+.select-with-action {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 41px;
+  align-items: center;
+  gap: 8px;
+}
+
+.copy-select-btn {
+  width: 41px;
+  height: 41px;
+  color: var(--blue);
+  background: var(--surface);
+}
+
+.copy-select-btn:disabled {
+  color: var(--ink-400);
+  background: var(--canvas);
 }
 
 .field input,
@@ -1251,6 +1277,168 @@ tbody tr:last-child td {
   border: 0;
 }
 
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  color: #e8edf5;
+  background: #0f1420;
+  --ink-950: #f4f7fb;
+  --ink-900: #e8edf5;
+  --ink-700: #c9d2e0;
+  --ink-500: #9ca8ba;
+  --ink-400: #7f8ca1;
+  --line: #2d3748;
+  --canvas: #0f1420;
+  --surface: #171e2b;
+  --blue: #7594ff;
+  --blue-dark: #5f7fe9;
+  --blue-soft: #202d4e;
+  --green: #55d29a;
+  --green-soft: #17382c;
+  --amber: #f0b65a;
+  --amber-soft: #3a2d18;
+  --red: #f07b88;
+  --red-soft: #3d2028;
+  --sidebar: #090e18;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.24);
+  --shadow-md: 0 22px 54px rgba(0, 0, 0, 0.46);
+}
+
+:root[data-theme="dark"] .topbar {
+  background: rgba(23, 30, 43, 0.92);
+}
+
+:root[data-theme="dark"] .btn--secondary,
+:root[data-theme="dark"] .btn--quiet,
+:root[data-theme="dark"] .icon-btn,
+:root[data-theme="dark"] .compact-select select,
+:root[data-theme="dark"] .field input,
+:root[data-theme="dark"] .field select,
+:root[data-theme="dark"] .field textarea {
+  color: var(--ink-900);
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .btn--ghost {
+  background: transparent;
+}
+
+:root[data-theme="dark"] .search-box,
+:root[data-theme="dark"] th,
+:root[data-theme="dark"] .responsible-card,
+:root[data-theme="dark"] .people-pair,
+:root[data-theme="dark"] .ticket-card {
+  background: #131a26;
+}
+
+:root[data-theme="dark"] tbody tr:hover,
+:root[data-theme="dark"] .input-with-action .icon-btn {
+  background: #1c2638;
+}
+
+:root[data-theme="dark"] td {
+  border-bottom-color: #273142;
+}
+
+:root[data-theme="dark"] .stat-card__icon--ink {
+  color: #c5cede;
+  background: #252f40;
+}
+
+:root[data-theme="dark"] .stat-card__arrow,
+:root[data-theme="dark"] .people-pair > svg {
+  color: #69778d;
+}
+
+:root[data-theme="dark"] .avatar {
+  color: #d5dceb !important;
+  background: linear-gradient(145deg, #2b3547, #202938);
+  border-color: #384459;
+}
+
+:root[data-theme="dark"] .badge--aberto {
+  color: #9bb5ff;
+  background: #1d2c50;
+  border-color: #2b4375;
+}
+
+:root[data-theme="dark"] .badge--em_andamento {
+  color: #f1c36f;
+  background: #3b2d16;
+  border-color: #5a4522;
+}
+
+:root[data-theme="dark"] .badge--resolvido {
+  color: #78dda9;
+  background: #17382b;
+  border-color: #245440;
+}
+
+:root[data-theme="dark"] .badge--fechado {
+  color: #b2bdce;
+  background: #252e3d;
+  border-color: #374255;
+}
+
+:root[data-theme="dark"] .connection-alert,
+:root[data-theme="dark"] .inline-error,
+:root[data-theme="dark"] .toast--erro {
+  color: #ffabb4;
+  border-color: #6b303a;
+}
+
+:root[data-theme="dark"] .connection-alert span {
+  color: #e58d98;
+}
+
+:root[data-theme="dark"] .field input::placeholder,
+:root[data-theme="dark"] .field textarea::placeholder {
+  color: #68758a;
+}
+
+:root[data-theme="dark"] .responsible-chip,
+:root[data-theme="dark"] .responsible-count {
+  border-color: #285440;
+}
+
+:root[data-theme="dark"] .modal {
+  background: var(--surface);
+  border-color: var(--line);
+}
+
+:root[data-theme="dark"] .assignment-card {
+  background: #18233a;
+  border-color: #2c426c;
+}
+
+:root[data-theme="dark"] .assignment-card__head > span {
+  background: #22345c;
+}
+
+:root[data-theme="dark"] .switch span {
+  background: #4b576a;
+}
+
+:root[data-theme="dark"] .switch span::after {
+  background: #e8edf5;
+}
+
+:root[data-theme="dark"] .toast {
+  color: #85e3b2;
+  background: #17362a;
+  border-color: #285640;
+}
+
+:root[data-theme="dark"] .copy-select-btn {
+  color: var(--blue);
+  background: #1c2638;
+}
+
+:root[data-theme="dark"] .copy-select-btn:disabled {
+  color: var(--ink-400);
+  background: #121925;
+}
+
 .is-spinning {
   animation: spin 750ms linear infinite;
 }
@@ -1342,7 +1530,7 @@ tbody tr:last-child td {
     padding: 10px 16px;
   }
 
-  .topbar > .btn span {
+  .topbar__actions .btn span {
     display: none;
   }
 
