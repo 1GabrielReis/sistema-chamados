@@ -1,5 +1,7 @@
 # Sistema de Chamados
 
+![Visão geral do Sistema de Chamados: abertura, distribuição automática e resolução, desenvolvido com Go, React, PostgreSQL e Docker.](docs/images/sistema-chamados.png)
+
 Aplicação web para abertura, distribuição e acompanhamento de chamados internos. O projeto foi desenvolvido em Go, React e PostgreSQL e pode ser executado integralmente com Docker Compose.
 
 ## Funcionalidades
