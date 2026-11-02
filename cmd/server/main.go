@@ -46,6 +46,7 @@ func main() {
 	mux.HandleFunc("POST /pessoas", pessoaHandler.Cadastrar)
 	mux.HandleFunc("GET /pessoas/{codigo}", pessoaHandler.BuscarPorCodigoPublico)
 	mux.HandleFunc("GET /pessoas/responsaveis", pessoaHandler.ListarResponsaveis)
+	mux.HandleFunc("GET /pessoas/solicitantes", pessoaHandler.ListarSolicitantes)
 	mux.HandleFunc("PATCH /pessoas/{codigo}", pessoaHandler.Atualizar)
 	mux.HandleFunc("PATCH /pessoas/{codigo}/responsavel", pessoaHandler.HabilitarComoResponsavel)
 

@@ -91,6 +91,29 @@ func (h *PessoaHandler) ListarResponsaveis(w http.ResponseWriter, r *http.Reques
 	}
 }
 
+func (h *PessoaHandler) ListarSolicitantes(w http.ResponseWriter, r *http.Request) {
+	pessoas, err := h.pessoaService.ListarSolicitantes(r.Context())
+	if err != nil {
+		fmt.Printf("erro ao listar solicitantes: %v\n", err)
+		http.Error(w, "erro interno ao listar solicitantes", http.StatusInternalServerError)
+		return
+	}
+
+	saida := make([]pessoaResposta, 0, len(pessoas))
+
+	for _, pessoa := range pessoas {
+		saida = append(saida, novaPessoaResposta(pessoa))
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	if err := json.NewEncoder(w).Encode(saida); err != nil {
+		fmt.Printf("erro ao gerar resposta JSON de pessoa: %v\n", err)
+	}
+
+}
+
 func (h *PessoaHandler) Atualizar(w http.ResponseWriter, r *http.Request) {
 
 	codigo := r.PathValue("codigo")

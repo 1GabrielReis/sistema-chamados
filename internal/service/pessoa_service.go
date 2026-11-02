@@ -49,6 +49,10 @@ func (s *PessoaService) ListarResponsaveis(ctx context.Context) ([]domain.Pessoa
 	return s.repositorio.ListarResponsaveis(ctx)
 }
 
+func (s *PessoaService) ListarSolicitantes(ctx context.Context) ([]domain.Pessoa, error) {
+	return s.repositorio.ListarSolicitantes(ctx)
+}
+
 func (s *PessoaService) Atualizar(ctx context.Context,
 	registroPublico string, nome string) (domain.Pessoa, error) {
 

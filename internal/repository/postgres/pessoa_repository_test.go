@@ -253,6 +253,109 @@ func TestPessoaRepository_ListarResponsaveis(t *testing.T) {
 
 }
 
+func TestPessoaRepository_ListarSolicitantes(t *testing.T) {
+	databaseURL := os.Getenv("DATABASE_URL")
+	if databaseURL == "" {
+		t.Skip("DATABASE_URL não definida")
+	}
+
+	ctx := context.Background()
+
+	pool, err := database.Conectar(ctx, databaseURL)
+	if err != nil {
+		t.Fatalf("não foi possível conectar ao banco: %v", err)
+	}
+	t.Cleanup(pool.Close)
+
+	repositorio := NovoPessoaRepository(pool)
+
+	pessoaResponsavel := domain.Pessoa{
+		RegistroPublico: "TEST1-" + rand.Text(),
+		Nome:            "Pessoa de teste",
+	}
+	pessoa1 := domain.Pessoa{
+		RegistroPublico: "TEST2-" + rand.Text(),
+		Nome:            "Pessoa de teste",
+	}
+	pessoa2 := domain.Pessoa{
+		RegistroPublico: "TEST3-" + rand.Text(),
+		Nome:            "Pessoa de teste",
+	}
+
+	codigosTeste := []string{
+		pessoaResponsavel.RegistroPublico,
+		pessoa1.RegistroPublico,
+		pessoa2.RegistroPublico,
+	}
+
+	t.Cleanup(func() {
+		_, err := pool.Exec(
+			context.Background(),
+			"DELETE FROM pessoas WHERE registro_publico = ANY($1::text[])",
+			codigosTeste,
+		)
+		if err != nil {
+			t.Errorf("não foi possível remover pessoas de teste: %v", err)
+		}
+	})
+
+	pessoaResponsavelCriada, err := repositorio.Criar(ctx, pessoaResponsavel)
+	if err != nil {
+		t.Fatalf("não foi possível criar pessoa responsavel: %v", err)
+	}
+
+	pessoaResponsavelCriada.EhResponsavel = true
+	_, err = repositorio.Atualizar(ctx, pessoaResponsavelCriada)
+	if err != nil {
+		t.Fatalf("não foi possível atulizar resposavel: %v", err)
+	}
+
+	pessoa1Criada, err := repositorio.Criar(ctx, pessoa1)
+	if err != nil {
+		t.Fatalf("não foi possível criar pessoa solicitante: %v", err)
+	}
+
+	pessoa2Criada, err := repositorio.Criar(ctx, pessoa2)
+	if err != nil {
+		t.Fatalf("não foi possível criar pessoa solicitante: %v", err)
+	}
+
+	solicitantes, err := repositorio.ListarSolicitantes(ctx)
+	if err != nil {
+		t.Fatalf("não foi possível listar solicitantes: %v", err)
+	}
+
+	encontrouPrimeiro := false
+	encontrouSegundo := false
+
+	for _, solicitante := range solicitantes {
+		if solicitante.EhResponsavel {
+			t.Errorf("lista retornou pessoa que é responsável: id=%d", solicitante.ID)
+		}
+
+		if solicitante.ID == pessoa1Criada.ID {
+			encontrouPrimeiro = true
+		}
+
+		if solicitante.ID == pessoa2Criada.ID {
+			encontrouSegundo = true
+		}
+
+		if solicitante.ID == pessoaResponsavelCriada.ID {
+			t.Errorf("lista retornou o responsavel: id=%d", pessoaResponsavelCriada.ID)
+		}
+	}
+
+	if !encontrouPrimeiro {
+		t.Error("primeiro solicitante criado não apareceu na lista")
+	}
+
+	if !encontrouSegundo {
+		t.Error("segundo solicitante criado não apareceu na lista")
+	}
+
+}
+
 func TestPessoaRepository_Atualizar(t *testing.T) {
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {

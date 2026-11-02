@@ -109,6 +109,46 @@ func (r *PessoaRepository) ListarResponsaveis(ctx context.Context) ([]domain.Pes
 
 }
 
+func (r *PessoaRepository) ListarSolicitantes(ctx context.Context) ([]domain.Pessoa, error) {
+	const consulta = `
+		SELECT id, registro_publico, nome, eh_responsavel, data_cadastro
+		FROM pessoas 
+		WHERE eh_responsavel = FALSE
+		ORDER BY nome
+	`
+	rows, err := r.pool.Query(ctx, consulta)
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+	pessoas := make([]domain.Pessoa, 0)
+
+	for rows.Next() {
+		var pessoa domain.Pessoa
+
+		err = rows.Scan(
+			&pessoa.ID,
+			&pessoa.RegistroPublico,
+			&pessoa.Nome,
+			&pessoa.EhResponsavel,
+			&pessoa.DataCadastro,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		pessoas = append(pessoas, pessoa)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return pessoas, nil
+
+}
+
 func (r *PessoaRepository) Atualizar(ctx context.Context, pessoa domain.Pessoa) (domain.Pessoa, error) {
 	const consulta = `
 		UPDATE pessoas
