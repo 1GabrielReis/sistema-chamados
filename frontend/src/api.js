@@ -47,6 +47,7 @@ export const api = {
       body: JSON.stringify({ nome }),
     }),
   listarResponsaveis: () => request("/pessoas/responsaveis"),
+  listarSolicitantes: () => request("/pessoas/solicitantes"),
   habilitarResponsavel: (codigoPessoa, codigoAutorizador) =>
     request(`/pessoas/${encodeURIComponent(codigoPessoa)}/responsavel`, {
       method: "PATCH",

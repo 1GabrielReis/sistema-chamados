@@ -146,6 +146,10 @@ pnpm build
 - a distribuição automática é decidida pelo backend, evitando regras divergentes entre clientes;
 - as chaves estrangeiras usam `ON DELETE RESTRICT` para impedir chamados órfãos.
 
+## Transparência sobre o uso de IA
+
+O frontend em React, incluindo sua interface visual, integração com a API e configuração para execução no Docker, foi implementado pelo OpenAI Codex a partir dos requisitos e das decisões definidas pelo autor do projeto. O resultado foi revisado e validado localmente em conjunto com o autor.
+
 ## Referências e bibliotecas externas
 
 - [Go](https://go.dev/)

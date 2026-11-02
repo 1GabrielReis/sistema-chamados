@@ -26,6 +26,31 @@ test("listarChamados consulta o endpoint esperado", async () => {
   assert.equal(chamados[0].titulo, "Impressora");
 });
 
+test("listarSolicitantes consulta o novo endpoint", async () => {
+  globalThis.fetch = async (url, options) => {
+    assert.equal(url, "/api/pessoas/solicitantes");
+    assert.equal(options.headers.Accept, "application/json");
+
+    return {
+      ok: true,
+      status: 200,
+      json: async () => [
+        {
+          registro_publico: "PESSOA-001",
+          nome: "Pessoa solicitante",
+          eh_responsavel: false,
+        },
+      ],
+    };
+  };
+
+  const solicitantes = await api.listarSolicitantes();
+
+  assert.equal(solicitantes.length, 1);
+  assert.equal(solicitantes[0].registro_publico, "PESSOA-001");
+  assert.equal(solicitantes[0].eh_responsavel, false);
+});
+
 test("cadastrarChamado envia JSON pelo método POST", async () => {
   const entrada = {
     codigo_solicitante: "PESSOA-001",

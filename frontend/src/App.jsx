@@ -55,6 +55,7 @@ function App() {
   const [menuAberto, setMenuAberto] = useState(false);
   const [chamados, setChamados] = useState([]);
   const [responsaveis, setResponsaveis] = useState([]);
+  const [solicitantes, setSolicitantes] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState("");
   const [modal, setModal] = useState(null);
@@ -64,12 +65,14 @@ function App() {
     if (!silencioso) setCarregando(true);
     setErro("");
     try {
-      const [listaChamados, listaResponsaveis] = await Promise.all([
+      const [listaChamados, listaResponsaveis, listaSolicitantes] = await Promise.all([
         api.listarChamados(),
         api.listarResponsaveis(),
+        api.listarSolicitantes(),
       ]);
       setChamados(listaChamados ?? []);
       setResponsaveis(listaResponsaveis ?? []);
+      setSolicitantes(listaSolicitantes ?? []);
     } catch (error) {
       setErro(error.message || "Não foi possível carregar os dados.");
     } finally {
@@ -155,6 +158,7 @@ function App() {
           modo={modal.modo}
           chamado={modal.chamado}
           responsaveis={responsaveis}
+          solicitantes={solicitantes}
           aoFechar={() => setModal(null)}
           aoEditar={() => setModal({ modo: "editar", chamado: modal.chamado })}
           aoSalvar={aoSalvarChamado}
@@ -441,6 +445,7 @@ function PessoasPage({ responsaveis, aoAtualizar, aoNotificar }) {
       setNomeEdicao(criada.nome);
       setCodigoBusca(criada.registro_publico);
       aoNotificar("Pessoa cadastrada. Guarde o código público.");
+      await aoAtualizar();
     } catch (error) {
       setErroLocal(error.message);
     } finally {
@@ -665,7 +670,15 @@ function PessoasPage({ responsaveis, aoAtualizar, aoNotificar }) {
   );
 }
 
-function ChamadoModal({ modo, chamado, responsaveis, aoFechar, aoEditar, aoSalvar }) {
+function ChamadoModal({
+  modo,
+  chamado,
+  responsaveis,
+  solicitantes,
+  aoFechar,
+  aoEditar,
+  aoSalvar,
+}) {
   const visualizando = modo === "visualizar";
   const editando = modo === "editar";
   const [salvando, setSalvando] = useState(false);
@@ -748,13 +761,23 @@ function ChamadoModal({ modo, chamado, responsaveis, aoFechar, aoEditar, aoSalva
 
             {!editando && (
               <label className="field field--full">
-                <span>Código do solicitante</span>
-                <input
+                <span>Solicitante</span>
+                <select
                   required
                   value={form.codigo_solicitante}
-                  onChange={(event) => alterar("codigo_solicitante", event.target.value.toUpperCase())}
-                  placeholder="Código público recebido no cadastro"
-                />
+                  onChange={(event) => alterar("codigo_solicitante", event.target.value)}
+                >
+                  <option value="">
+                    {solicitantes.length === 0
+                      ? "Nenhum solicitante cadastrado"
+                      : "Selecione um solicitante"}
+                  </option>
+                  {solicitantes.map((item) => (
+                    <option key={item.registro_publico} value={item.registro_publico}>
+                      {item.nome} · {item.registro_publico}
+                    </option>
+                  ))}
+                </select>
               </label>
             )}
 
