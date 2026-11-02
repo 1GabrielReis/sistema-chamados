@@ -12,7 +12,7 @@ Aplicação web para abertura, distribuição e acompanhamento de chamados inter
 - cadastro e consulta de pessoas por código público;
 - atualização do nome de uma pessoa;
 - habilitação de uma pessoa como responsável mediante autorização;
-- interface responsiva para computador e celular;
+- interface responsiva para computador e celular;OpenAI Codex
 - três responsáveis iniciais disponíveis no banco.
 
 ## Tecnologias
